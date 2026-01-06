@@ -55,7 +55,9 @@ fbuf = ST7920(spi, cs)
 
 
 #fbuf_test =framebuf.FrameBuffer(bytearray(128*64 // 2), 20, 20,framebuf.MONO_HLSB)
-fbuf_sensor = framebuf.FrameBuffer(bytearray(312), 60, 39,framebuf.MONO_HLSB) #60*39 = 2 340 pocet pixelov / 8  = 292,5 pocet potrebných bajtov 
+fbuf_sensor = framebuf.FrameBuffer(bytearray(312), 60, 39,framebuf.MONO_HLSB) #60*39 = 2 340 pocet pixelov / 8  = 292,5 pocet potrebných bajtov
+fbuf_avg = framebuf.FrameBuffer(bytearray(312), 40, 10,framebuf.MONO_HLSB) 
+
 fbuf_time = framebuf.FrameBuffer(bytearray(80), 64 ,10 ,framebuf.MONO_HLSB)
 fbuf_date = framebuf.FrameBuffer(bytearray(40), 30, 10,framebuf.MONO_HLSB)
 fbuf_gps = framebuf.FrameBuffer(bytearray(312), 124, 19,framebuf.MONO_HLSB) 
@@ -64,6 +66,7 @@ fbuf_gps = framebuf.FrameBuffer(bytearray(312), 124, 19,framebuf.MONO_HLSB)
 def vip(data): #vykreslovanie-------
     fbuf.fill(0)
     fbuf_sensor.fill(0)
+    fbuf_avg.fill(0)
     fbuf_time.fill(0)
     fbuf_date.fill(0)
     fbuf_gps.fill(0)
@@ -73,15 +76,18 @@ def vip(data): #vykreslovanie-------
     fbuf_sensor.text(data[1], 0, 0, 1)
     fbuf_sensor.text(data[2], 0, 9, 1)
     
+    fbuf_avg.text(data[5],0,0,1)
+    
     fbuf_time.text(data[3], 0, 3, 1)
     fbuf_date.text(data[4],0,3,1)
     
     fbuf_gps.text('N',100,0,1)
     fbuf_gps.text('E',100,9,1)
-    fbuf_gps.text( data[5], 3, 0,1)
-    fbuf_gps.text(data[6], 3, 9,1)
+    fbuf_gps.text( data[6], 3, 0,1)
+    fbuf_gps.text(data[7], 3, 9,1)
     
     fbuf.blit(fbuf_sensor,3,15)
+    fbuf.blit(fbuf_avg,64,33)
     fbuf.blit(fbuf_time,58,2)
     fbuf.blit(fbuf_date,3,2)
     fbuf.blit(fbuf_gps,3,44)
@@ -104,24 +110,41 @@ sensor.set_measurement_settings({
 sensor.set_power_mode(bme280_i2c.BME280_NORMAL_MODE)
 
 
+            
+f_avg  = 0         
+def avg(i):
+    global f_avg
+    f_plus = 0
+    if len(i) == 60:
+        for f in i:
+            f_plus += f
+        f_avg = f_plus / 60
+        del i[0]        
+    return (f_avg)
+    
 def debug():
     print('hodinyD',ds.date_time(),'**')
     print('hodinyS:',rtc.datetime()[6])
     print('display_nastavenie:',fbuf._spi)
     print('senzor:',sensor.get_measurement())
+    print('avg:',avg(avg_t))
     print(micropython.mem_info())
-    
 
+
+avg_t = []
+avg_p = []
+avg_h = []
 def main(c):
-    debug()
     
     t, p , h = sensor.get_measurement()
-    Y, M, D, Day, Hr, m, S, ms = rtc.datetime()
-    date, gcas, lat, lot, alt, spd = GPS()
+    avg_t.append(t) 
+    
+    Y, M, D, Day, hr, m, s, ms = rtc.datetime()
+    date, gcas, lat, lot, alt, spd = GPS() # pridať try
     
     vip( ('t{:+05.1f}C'.format(t), 'h{:02.0f}%'.format(h) , 'p{:04d}'.format(p // 100)    #nechitať
-          ,'{:02d}:{:02d}:{:02d}'.format(Hr, M, S) , '{}.{}'.format(D,M)
+          ,'{:02d}:{:02d}:{:02d}'.format(hr, m, s) , '{}.{}'.format(D,M), '{:+0.0f}'.format(avg(avg_t))
           ,lat,lot))
-   
+    debug()
 cas = machine.Timer() #casovac
 cas.init(period=1000, callback=main) #1000ms
