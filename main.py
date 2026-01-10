@@ -1,4 +1,4 @@
-import machine, time, micropython
+import machine, time, micropython ,gc
 
 from micropyGPS import MicropyGPS
 
@@ -82,9 +82,19 @@ def vip(data): #vykreslovanie-------
     fbuf_min.text(data[6],0,0,1)
     fbuf_avg.text(data[5],0,0,1)
     fbuf_max.text(data[7],0,0,1)
+    x=0
+    for time in data[3]:
+        if time == ':':
+            x -= 2
+            fbuf_time.text(time, x, 3, 1)
+            x -= 2
+        else:
+            fbuf_time.text(time, x, 3, 1)   
+        x += 8
+        
+        
+    #fbuf_time.text(data[3], 0, 3, 1)
     
-    
-    fbuf_time.text(data[3], 0, 3, 1)
     fbuf_date.text(data[4],0,3,1)
     
     fbuf_gps.text('N',100,0,1)
@@ -96,7 +106,7 @@ def vip(data): #vykreslovanie-------
     fbuf.blit(fbuf_min,53,33)
     fbuf.blit(fbuf_max,101,33)
     fbuf.blit(fbuf_avg,77,33)
-    fbuf.blit(fbuf_time,58,2)
+    fbuf.blit(fbuf_time,60,2)
     fbuf.blit(fbuf_date,3,2)
     fbuf.blit(fbuf_gps,3,44)
     
@@ -139,9 +149,9 @@ def debug():
     print('display_nastavenie:',fbuf._spi)
     print('senzor:',sensor.get_measurement())
     print('avg_len:',len(avg_t))
-    print(micropython.mem_info())
+    print('free:',gc.mem_free(),gc.mem_free() // 1024,'\n','alloc:',gc.mem_alloc(),gc.mem_alloc() // 1024)
 
-
+gc.enable()
 avg_t = []
 avg_p = []
 avg_h = []
@@ -150,12 +160,14 @@ def main(c):
     t, p , h = sensor.get_measurement()
     avg_t.append(t) 
     #'{:+0.0f}'.format(avg(avg_t)[1[0]]) , '{:+0.0f}'.format(avg(avg_t)[1][0])
-    Y, M, D, Day, hr, m, s, ms = rtc.datetime()
+    Y, M, D, Day, hr, m, s, ms = rtc.datetime() # MemoryError: memory allocation failed, allocating 8192 bytes
+
     date, gcas, lat, lot, alt, spd = GPS() # pridať try
 
     vip( ('t{:+05.1f}'.format(t), 'h{:02.0f}%'.format(h) , 'p{:04d}'.format(p // 100)    #nechitať
           ,'{:02d}:{:02d}:{:02d}'.format(hr, m, s) , '{}.{}'.format(D,M), '{:+0.0f}'.format(avg(avg_t)), '{:+0.0f}'.format(Minmaxi[0]), '{:+0.0f}'.format(Minmaxi[1])
           ,lat,lot))
+    gc.collect()
     debug()
 cas = machine.Timer() #casovac
 cas.init(period=1000, callback=main) #1000ms
