@@ -29,7 +29,7 @@ gps_serial = machine.UART(0, baudrate=9600, tx=machine.Pin(12), rx=machine.Pin(1
 
 def GPS():   
     data = gps_serial.read()
-    for byte in data:
+    for byte in data: #TypeError: 'NoneType' object isn't iterable
         stat = gps.update(chr(byte))
         if stat is not None: 
 #             print('UTC Timestamp:', gps.timestamp)
@@ -51,20 +51,21 @@ def GPS():
 
 spi = machine.SPI(0, baudrate=800000, sck=machine.Pin(18), mosi=machine.Pin(19))
 cs = machine.Pin(17, machine.Pin.OUT, value=0)
-fbuf = ST7920(spi, cs)
-
 
 #fbuf_test =framebuf.FrameBuffer(bytearray(128*64 // 2), 20, 20,framebuf.MONO_HLSB)
 fbuf_sensor = framebuf.FrameBuffer(bytearray(312), 60, 39,framebuf.MONO_HLSB) #60*39 = 2 340 pocet pixelov / 8  = 292,5 pocet potrebných bajtov
 fbuf_avg = framebuf.FrameBuffer(bytearray(40), 23, 10,framebuf.MONO_HLSB) 
 fbuf_min = framebuf.FrameBuffer(bytearray(40), 23, 10,framebuf.MONO_HLSB)
 fbuf_max = framebuf.FrameBuffer(bytearray(40), 23, 10,framebuf.MONO_HLSB)
-fbuf_time = framebuf.FrameBuffer(bytearray(80), 64 ,10 ,framebuf.MONO_HLSB)
+fbuf_time = framebuf.FrameBuffer(bytearray(70), 55 ,10 ,framebuf.MONO_HLSB)
 fbuf_date = framebuf.FrameBuffer(bytearray(40), 30, 10,framebuf.MONO_HLSB) # rok dlzka !!!!
 fbuf_gps = framebuf.FrameBuffer(bytearray(312), 124, 19,framebuf.MONO_HLSB) 
  
 
 def vip(data): #vykreslovanie-------
+    global fbuf
+    if f_avg == 0:
+        fbuf = ST7920(spi, cs)
     fbuf.fill(0)
     fbuf_sensor.fill(0)
     fbuf_min.fill(0) 
@@ -106,7 +107,7 @@ def vip(data): #vykreslovanie-------
     fbuf.blit(fbuf_min,53,33)
     fbuf.blit(fbuf_max,101,33)
     fbuf.blit(fbuf_avg,77,33)
-    fbuf.blit(fbuf_time,60,2)
+    fbuf.blit(fbuf_time,68,2)
     fbuf.blit(fbuf_date,3,2)
     fbuf.blit(fbuf_gps,3,44)
     
@@ -131,7 +132,7 @@ sensor.set_power_mode(bme280_i2c.BME280_NORMAL_MODE)
             
 f_avg  = 0
 Minmaxi = (0,0)
-def avg(i):
+def avg(i): #memory 
     global f_avg , Minmaxi
     f_plus = 0
     if len(i) == 60:
@@ -151,7 +152,8 @@ def debug():
     print('avg_len:',len(avg_t))
     print('free:',gc.mem_free(),gc.mem_free() // 1024,'\n','alloc:',gc.mem_alloc(),gc.mem_alloc() // 1024)
 
-gc.enable()
+#gc.disable()
+
 avg_t = []
 avg_p = []
 avg_h = []
