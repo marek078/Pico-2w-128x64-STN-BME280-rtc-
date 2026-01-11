@@ -1,4 +1,5 @@
 import machine, time, micropython ,gc
+from collections import deque
 
 from micropyGPS import MicropyGPS
 
@@ -132,7 +133,7 @@ sensor.set_power_mode(bme280_i2c.BME280_NORMAL_MODE)
             
 f_avg  = 0
 Minmaxi = (0,0)
-def avg(i): #memory 
+def avg(i):  
     global f_avg , Minmaxi
     f_plus = 0
     if len(i) == 60:
@@ -140,7 +141,6 @@ def avg(i): #memory
             f_plus += f
         f_avg = f_plus / 60
         Minmaxi = min(i) , max(i)
-        del i[0]
     return (f_avg)
       
     
@@ -153,8 +153,7 @@ def debug():
     print('free:',gc.mem_free(),gc.mem_free() // 1024,'\n','alloc:',gc.mem_alloc(),gc.mem_alloc() // 1024)
 
 #gc.disable()
-
-avg_t = []
+avg_t = deque([],60)
 avg_p = []
 avg_h = []
 def main(c):
