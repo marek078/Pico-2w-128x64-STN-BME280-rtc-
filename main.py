@@ -59,7 +59,7 @@ fbuf_avg = framebuf.FrameBuffer(bytearray(40), 23, 10,framebuf.MONO_HLSB)
 fbuf_min = framebuf.FrameBuffer(bytearray(40), 23, 10,framebuf.MONO_HLSB)
 fbuf_max = framebuf.FrameBuffer(bytearray(40), 23, 10,framebuf.MONO_HLSB)
 fbuf_time = framebuf.FrameBuffer(bytearray(70), 56 ,10 ,framebuf.MONO_HLSB)
-fbuf_date = framebuf.FrameBuffer(bytearray(40), 32, 10,framebuf.MONO_HLSB) # rok dlzka !!!!
+fbuf_date = framebuf.FrameBuffer(bytearray(80), 64, 10,framebuf.MONO_HLSB) # rok dlzka !!!!
 fbuf_gps = framebuf.FrameBuffer(bytearray(312), 124, 19,framebuf.MONO_HLSB) 
  
 
@@ -98,7 +98,7 @@ def vip(data): #vykreslovanie-------
         
     #fbuf_time.text(data[3], 0, 3, 1)
     
-    fbuf_date.text(data[4],0,3,1)
+    fbuf_date.text(data[4],0,2,1)
     
     fbuf_gps.text('N',100,0,1)
     fbuf_gps.text('E',100,9,1)
@@ -169,7 +169,7 @@ def main(c):
         date, gcas, lat, lot, alt, spd = ('00/00/00', [0, 0, 0.0], '0 0.0', '0 0.0', 0.0, '0.00')
         
     vip( ('t{:+05.1f}'.format(t), 'h{:02.0f}%'.format(h) , 'p{:04d}'.format(p // 100)    #nechitať
-          ,'{:02d}:{:02d}:{:02d}'.format(hr, m, s) , '{}.{}'.format(D,M), '{:+0.0f}'.format(avg(avg_t)), '{:+0.0f}'.format(Minmaxi[0]), '{:+0.0f}'.format(Minmaxi[1])
+          ,'{:02d}:{:02d}:{:02d}'.format(hr, m, s) , '{}.{}.{}'.format(D,M,Y), '{:+0.0f}'.format(avg(avg_t)), '{:+0.0f}'.format(Minmaxi[0]), '{:+0.0f}'.format(Minmaxi[1])
           ,lat,lot))
     gc.collect()
     debug()
