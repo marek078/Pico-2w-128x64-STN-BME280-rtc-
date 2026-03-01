@@ -12,7 +12,7 @@ import framebuf2 as framebuf
 ds = DS1302(machine.Pin(12),machine.Pin(11),machine.Pin(10)) # pini pre hodiny rtc
 
 #print(ds.date_time()) # returns the current datetime.
-#ds.date_time([2025, 3, 5, 3, 15, 54,30  ]) # set datetime. ## nastavit cas pre RTC 0 je sunday
+#ds.date_time([2026, 3, 1, 0, 14, 45,1  ]) # set datetime. ## nastavit cas pre RTC 0 je sunday
 #(Y,M,D,day,hr,m,s)=ds.date_time()
 #ds.hour() # returns hour.
 #print(ds.date_time())
@@ -58,21 +58,22 @@ fbuf_sensor = framebuf.FrameBuffer(bytearray(312), 60, 39,framebuf.MONO_HLSB) #6
 fbuf_avg = framebuf.FrameBuffer(bytearray(40), 23, 10,framebuf.MONO_HLSB) 
 fbuf_min = framebuf.FrameBuffer(bytearray(40), 23, 10,framebuf.MONO_HLSB)
 fbuf_max = framebuf.FrameBuffer(bytearray(40), 23, 10,framebuf.MONO_HLSB)
-fbuf_time = framebuf.FrameBuffer(bytearray(70), 55 ,10 ,framebuf.MONO_HLSB)
+fbuf_time = framebuf.FrameBuffer(bytearray(70), 56 ,10 ,framebuf.MONO_HLSB)
 fbuf_date = framebuf.FrameBuffer(bytearray(40), 32, 10,framebuf.MONO_HLSB) # rok dlzka !!!!
 fbuf_gps = framebuf.FrameBuffer(bytearray(312), 124, 19,framebuf.MONO_HLSB) 
  
 
 def vip(data): #vykreslovanie-------
     global fbuf
+    
     if f_avg == 0:
-        fbuf = ST7920(spi, cs)
+       fbuf = ST7920(spi, cs)
     fbuf.fill(0)
     fbuf_sensor.fill(0)
     fbuf_min.fill(0) 
     fbuf_max.fill(0) 
     fbuf_avg.fill(0)
-    fbuf_time.fill(0)
+    fbuf_time.fill(1)
     fbuf_date.fill(0)
     fbuf_gps.fill(0)
     fbuf.rect(0,0,128,64,1)
@@ -88,10 +89,10 @@ def vip(data): #vykreslovanie-------
     for time in data[3]:
         if time == ':':
             x -= 2
-            fbuf_time.text(time, x, 3, 1)
+            fbuf_time.text(time, x, 2, 0)
             x -= 2
         else:
-            fbuf_time.text(time, x, 3, 1)   
+            fbuf_time.text(time, x, 2, 0)   
         x += 8
         
         
@@ -162,9 +163,11 @@ def main(c):
     avg_t.append(t) 
     #'{:+0.0f}'.format(avg(avg_t)[1[0]]) , '{:+0.0f}'.format(avg(avg_t)[1][0])
     Y, M, D, Day, hr, m, s, ms = rtc.datetime() # MemoryError: memory allocation failed, allocating 8192 bytes
-
-    date, gcas, lat, lot, alt, spd = GPS() # pridať try
-
+    try:
+        date, gcas, lat, lot, alt, spd = GPS() 
+    except:
+        date, gcas, lat, lot, alt, spd = ('00/00/00', [0, 0, 0.0], '0 0.0', '0 0.0', 0.0, '0.00')
+        
     vip( ('t{:+05.1f}'.format(t), 'h{:02.0f}%'.format(h) , 'p{:04d}'.format(p // 100)    #nechitať
           ,'{:02d}:{:02d}:{:02d}'.format(hr, m, s) , '{}.{}'.format(D,M), '{:+0.0f}'.format(avg(avg_t)), '{:+0.0f}'.format(Minmaxi[0]), '{:+0.0f}'.format(Minmaxi[1])
           ,lat,lot))
