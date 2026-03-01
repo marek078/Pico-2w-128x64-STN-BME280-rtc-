@@ -9,7 +9,7 @@ from st7920 import ST7920
 import framebuf2 as framebuf
 
 #init pre hodiny
-ds = DS1302(machine.Pin(0),machine.Pin(5),machine.Pin(4)) # pini pre hodiny rtc
+ds = DS1302(machine.Pin(12),machine.Pin(11),machine.Pin(10)) # pini pre hodiny rtc
 
 #print(ds.date_time()) # returns the current datetime.
 #ds.date_time([2025, 3, 5, 3, 15, 54,30  ]) # set datetime. ## nastavit cas pre RTC 0 je sunday
@@ -25,7 +25,7 @@ rtc.datetime(ds.date_time()+[0])
 
 #init pre GPS
 gps = MicropyGPS(+2) # local ofset +2 
-gps_serial = machine.UART(0, baudrate=9600, tx=machine.Pin(12), rx=machine.Pin(13))
+gps_serial = machine.UART(1, baudrate=9600, tx=machine.Pin(4), rx=machine.Pin(5))
 
 
 def GPS():   
@@ -59,7 +59,7 @@ fbuf_avg = framebuf.FrameBuffer(bytearray(40), 23, 10,framebuf.MONO_HLSB)
 fbuf_min = framebuf.FrameBuffer(bytearray(40), 23, 10,framebuf.MONO_HLSB)
 fbuf_max = framebuf.FrameBuffer(bytearray(40), 23, 10,framebuf.MONO_HLSB)
 fbuf_time = framebuf.FrameBuffer(bytearray(70), 55 ,10 ,framebuf.MONO_HLSB)
-fbuf_date = framebuf.FrameBuffer(bytearray(40), 30, 10,framebuf.MONO_HLSB) # rok dlzka !!!!
+fbuf_date = framebuf.FrameBuffer(bytearray(40), 32, 10,framebuf.MONO_HLSB) # rok dlzka !!!!
 fbuf_gps = framebuf.FrameBuffer(bytearray(312), 124, 19,framebuf.MONO_HLSB) 
  
 
@@ -116,12 +116,12 @@ def vip(data): #vykreslovanie-------
 
 
 # init pre bme280
-i2c = machine.I2C(1, scl=machine.Pin(3), sda= machine.Pin(2), freq=400000 )
+i2c = machine.I2C(1, scl=machine.Pin(27), sda= machine.Pin(26), freq=400000 )
 sensor = bme280_i2c.BME280_I2C(address=bme280_i2c.BME280_I2C_ADDR_PRIM, i2c=i2c)
 
 sensor.set_measurement_settings({
-    'filter': bme280_i2c.BME280_FILTER_COEFF_16,
-    'standby_time': bme280_i2c.BME280_STANDBY_TIME_500_US,
+    'filter': bme280_i2c.BME280_FILTER_COEFF_4,
+    'standby_time': bme280_i2c.BME280_STANDBY_TIME_62_5_MS,
     'filter': bme280_i2c.BME280_FILTER_COEFF_OFF,
     'osr_h': bme280_i2c.BME280_OVERSAMPLING_1X,
     'osr_p': bme280_i2c.BME280_OVERSAMPLING_2X,
