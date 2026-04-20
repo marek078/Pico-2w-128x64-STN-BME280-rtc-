@@ -1,0 +1,5 @@
+stty raw -echo; cat >  test_data.csv) < /dev/serial/by-id/usb-MicroPython_Board_in_FS_mode_e660382823497f35-if00
+
+tail -f file.csv
+
+gnuplot graf
