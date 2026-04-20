@@ -98,7 +98,16 @@ def vip(data): #vykreslovanie-------
         
     #fbuf_time.text(data[3], 0, 3, 1)
     
-    fbuf_date.text(data[4],0,2,1)
+    #fbuf_date.text(data[4],0,2,1)
+    x= 0
+    for date in data[4]:
+        if date == '.':
+            x -= 2
+            fbuf_date.text(date, x, 2, 1)
+            x -= 2
+        else:
+            fbuf_date.text(date, x, 2, 1)   
+        x += 8
     
     fbuf_gps.text('N',100,0,1)
     fbuf_gps.text('E',100,9,1)
@@ -153,6 +162,9 @@ def debug():
     print('avg_len:',len(avg_t))
     print('free:',gc.mem_free(),gc.mem_free() // 1024,'\n','alloc:',gc.mem_alloc(),gc.mem_alloc() // 1024)
 
+def usbserial (data):
+    print(data)
+    
 #gc.disable()
 avg_t = deque([],60)
 avg_p = []
@@ -172,6 +184,7 @@ def main(c):
           ,'{:02d}:{:02d}:{:02d}'.format(hr, m, s) , '{}.{}.{}'.format(D,M,Y), '{:+0.0f}'.format(avg(avg_t)), '{:+0.0f}'.format(Minmaxi[0]), '{:+0.0f}'.format(Minmaxi[1])
           ,lat,lot))
     gc.collect()
-    debug()
+    #debug()
+    usbserial('{}/{}/{} {}:{}:{},{},{},{:02.0f}'.format(Y,M,D,hr,m,s,t,p/100,h))
 cas = machine.Timer() #casovac
 cas.init(period=1000, callback=main) #1000ms
